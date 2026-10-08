@@ -1,0 +1,29 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Dados pesados (8 GB de áudio)
+data/raw/
+data/backup/
+
+# Node
+node_modules/
+web/dist/
+
+# Ferramentas e segredos
+cloudflared
+.env
+*.log
+
+# Dados e audio (nunca versionar)
+/data/
+*.mp3
+*.wav
+*.flac
+web/public/audio/
+
+# Ambientes e segredos
+venv/
+.env.*
