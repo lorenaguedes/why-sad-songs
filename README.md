@@ -10,7 +10,7 @@ O site não responde por que as pessoas ouvem música triste. Ele mede som, não
 
 - As faixas com tag triste não ficam num único lugar do mapa. Cerca de 71% ficam nos dois grupos calmos e escuros; o resto se espalha pelos outros, inclusive os barulhentos.
 - O contrário também vale: mais da metade das faixas do grupo "lento e escuro" não foi marcada como triste.
-- 40 faixas com tag triste ficam longe da faixa triste típica no mapa. 20 delas podem ser tocadas no site (as que têm licença que permite).
+- 40 faixas com tag triste ficam longe da faixa triste típica no mapa. 20 delas podem ser ouvidas no site (as que têm licença que permite).
 
 Os números exibidos no site são calculados a partir dos dados quando a página carrega, e não digitados.
 
@@ -23,6 +23,7 @@ Os números exibidos no site são calculados a partir dos dados quando a página
 | Mapa | PCA para dois eixos (78,7% da variância mantida). |
 | Grupos | K-Means, k = 4, nas quatro features normalizadas. |
 | Frontend | React, TypeScript, Tailwind, D3 (só matemática) e canvas HTML. |
+| Áudio no site | Streaming direto do Jamendo. O repositório não contém nenhum arquivo de áudio. |
 
 ## Limitações
 
@@ -31,8 +32,9 @@ Os números exibidos no site são calculados a partir dos dados quando a página
 - **O mapa perde informação.** O PCA descarta cerca de 21% da variância.
 - **"Casos estranhos" é uma aproximação grosseira:** os 5% das faixas com tag triste mais distantes da mediana das faixas tristes no mapa 2D.
 - **O RMS depende da masterização,** e a estimativa automática de tempo pode errar por um fator de dois.
-- **Faixas do mesmo artista não são independentes.** Seis das vinte faixas tocáveis envolvem um mesmo artista.
-- **Os clipes de 20 segundos** vêm dos segundos 30 a 50 de cada faixa, uma parte posterior aos 30 segundos que foram medidos.
+- **Faixas do mesmo artista não são independentes.** Seis das vinte faixas ouvíveis envolvem um mesmo artista.
+- **O que você ouve não é exatamente o que foi medido.** As features vêm dos primeiros 30 s de cada faixa, mas o player toca a faixa desde o início, sem recorte.
+- **O áudio depende do Jamendo.** Se uma faixa for removida ou o serviço mudar, ela deixa de tocar no site, mesmo que continue no mapa. O `export_credits.py` filtra as faixas indisponíveis no momento em que é rodado.
 
 As mesmas notas aparecem na seção "Methods and limits" do site.
 
@@ -42,7 +44,7 @@ As mesmas notas aparecem na seção "Methods and limits" do site.
 data/
   interim/        metadados da amostra
   processed/      features, tabela analítica, universo com clusters
-  raw/            áudio baixado (fora do repositório, cerca de 8 GB)
+  raw/            áudio baixado para extrair features (fora do repositório, cerca de 8 GB)
 notebooks/        01 EDA, 02 modelagem (PCA + K-Means)
 src/sadsongs/
   ingestion/      verificação do dataset, metadados, download de áudio
@@ -51,6 +53,8 @@ src/sadsongs/
   export/         arquivos consumidos pelo site
 web/              o site (Vite + React + TypeScript)
 ```
+
+A pasta `data/` não está no repositório. Para reproduzir o projeto, gere-a com os scripts abaixo.
 
 ## Como reproduzir
 
@@ -76,12 +80,11 @@ python src/sadsongs/cleaning/merge_and_clean.py
 # depois rode notebooks/01_eda_distribuicoes.ipynb e notebooks/02_machine_learning.ipynb
 # (o 02 gera data/processed/clustered_universe.parquet)
 python src/sadsongs/export/export_for_web.py
-python src/sadsongs/export/export_audio_clips.py
 JAMENDO_CLIENT_ID=seu_id python src/sadsongs/export/export_credits.py
 ```
 
-- O download baixa faixas inteiras (cerca de 3,5 MB cada) do Jamendo e demora. Ele pula arquivos que já existem, então pode ser interrompido e retomado.
-- O `export_credits.py` precisa de um client id gratuito da API em [devportal.jamendo.com](https://devportal.jamendo.com). Ele também remove faixas cuja licença proíbe derivações (CC ND) e faixas que não estão mais no Jamendo. Rode-o **depois** do `export_audio_clips.py` e uma vez só: rodar a exportação de clipes de novo recria os clipes removidos.
+- O download baixa faixas inteiras (cerca de 3,5 MB cada) do Jamendo e demora. Ele pula arquivos que já existem, então pode ser interrompido e retomado. Esse áudio serve só para calcular as features e fica em `data/raw/`, fora do Git.
+- O `export_credits.py` precisa de um client id gratuito da API em [devportal.jamendo.com](https://devportal.jamendo.com). Ele remove faixas cuja licença proíbe derivações (CC ND) e faixas que não estão mais no Jamendo, e grava os créditos de cada faixa. Nunca coloque o client id no código nem faça commit dele: use a variável de ambiente.
 
 ### 2. Site
 
@@ -94,16 +97,15 @@ npm run dev        # http://127.0.0.1:5173
 npm run build      # saída em web/dist
 ```
 
-O site lê `web/public/data/universe.json`, `audio_ids.json` e `credits.json`, e os clipes em `web/public/audio/`. Todos são gerados pelos scripts de exportação.
+O site lê `universe.json`, `audio_ids.json` e `credits.json` em `web/public/data/`, todos gerados pelos scripts de exportação. Não há áudio em `web/public/`: ao clicar numa faixa, o navegador toca direto do Jamendo, então é preciso estar online.
 
 ## Áudio e licenças
 
-O áudio vem do [Jamendo](https://www.jamendo.com) sob licenças Creative Commons (CC BY, BY-NC e BY-NC-SA entre as faixas tocáveis). O site mostra título, artista e licença de cada faixa, e se destina a pesquisa e educação sem fins comerciais. Se você reutilizar os clipes, confira a licença de cada faixa; todas estão creditadas em `web/public/data/credits.json`.
+O áudio vem do [Jamendo](https://www.jamendo.com) sob licenças Creative Commons (CC BY, BY-NC e BY-NC-SA entre as faixas ouvíveis). Este projeto não hospeda nem redistribui nenhum arquivo de áudio: o navegador faz streaming direto do Jamendo. O site mostra título e artista de cada faixa e se destina a pesquisa e educação sem fins comerciais. A licença, o link e o crédito de todas as faixas estão em `web/public/data/credits.json`.
 
-Faixas com licença CC BY-ND foram excluídas do conjunto tocável.
+Faixas com licença CC BY-ND foram excluídas do conjunto ouvível. Se você reutilizar o projeto, confira a licença de cada faixa e mantenha o uso não comercial.
 
 ## Créditos
 
 - Dataset: Bogdanov, D., Won, M., Tovstogan, P., Porter, A., & Serra, X. (2019). *The MTG-Jamendo Dataset for Automatic Music Tagging.* Machine Learning for Music Discovery Workshop, ICML 2019.
 - Áudio e tags: Jamendo e seus artistas.
-

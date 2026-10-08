@@ -57,7 +57,7 @@ function buildSteps(s: Stats): Step[] {
     },
     {
       title: 'And then there are the strange ones.',
-      body: `${s.farN} sad-tagged songs sit far from the typical sad song. We can share 20 of them, the ones whose licenses allow it. Sadness (Raw Version) has more than three times the energy of the average slow, dark song. Endless Journey is the quietest of the twenty, yet lands among the bright ones. Rays of hope is the loudest, and it is tagged sad. Maybe the tags capture something the audio features don't. Maybe four numbers simply can't hear sadness.`
+      body: `${s.farN} sad-tagged songs sit far from the typical sad song. We can play 20 of them, the ones whose licenses allow it. Sadness (Raw Version) has more than three times the energy of the average slow, dark song. Endless Journey is the quietest of the twenty, yet lands among the bright ones. Rays of hope is the loudest, and it is tagged sad. Maybe the tags capture something the audio features don't. Maybe four numbers simply can't hear sadness.`
     },
     {
       title: 'Your turn.',
@@ -204,10 +204,10 @@ export default function App() {
           <li><b className="text-slate-300">Data.</b> 2,400 tracks from the MTG-Jamendo dataset, sampled to 800 per group. Each track gets one tag: tracks tagged both sad and happy were left out, tracks tagged sad and dark count as sad, tracks tagged happy and dark count as happy, and "dark" means dark without sad or happy. This balance is by design, so the share of sad tracks here says nothing about music in general.</li>
           <li><b className="text-slate-300">Tags.</b> Mood/theme tags in MTG-Jamendo are provided by the uploaders (artists or labels), not by listeners. They express intent, are not standardized, and "dark" is a mood/theme label rather than an emotion.</li>
           <li><b className="text-slate-300">Audio features.</b> Computed on the first 30 seconds of each track: RMS energy (loud), estimated tempo (fast), spectral centroid (bright), zero-crossing rate (noisy). RMS depends on mastering, and automatic tempo estimates can be off by a factor of two. All four were normalized to 0–1.</li>
-          <li><b className="text-slate-300">Playable clips.</b> The 20-second clips you can play come from a later part of each track (seconds 30 to 50) than the first 30 seconds we measured.</li>
+          <li><b className="text-slate-300">Playable tracks.</b> The tracks you can play stream directly from Jamendo and start from the beginning, while the audio features were measured on the first 30 seconds. Playback depends on Jamendo, so a track may stop working if it is removed there.</li>
           <li><b className="text-slate-300">Map.</b> PCA reduces the four features to two axes, keeping 78.7% of the variance. The remaining 21% is lost, so distances on the map are approximate.</li>
           <li><b className="text-slate-300">Groups.</b> K-Means with k = 4, run on the four normalized features. We chose 4 because it gives groups we can describe by their sound, not because the data demands it: the silhouette score is 0.25 at k = 4, and higher at k = 2 (0.30) and k = 3 (0.30). By the usual rule of thumb, a silhouette near 0.25 means little or no substantial structure, so the groups overlap heavily.</li>
-          <li><b className="text-slate-300">Strange cases.</b> The 5% of sad-tagged tracks farthest from the median sad-tagged track on the 2D map. This is a rough proxy, and some may look far only because the map flattens four dimensions into two. We can play only those whose licenses allow 20-second clips.</li>
+          <li><b className="text-slate-300">Strange cases.</b> The 5% of sad-tagged tracks farthest from the median sad-tagged track on the 2D map. This is a rough proxy, and some may look far only because the map flattens four dimensions into two. We can play only those whose licenses allow it and that are still available on Jamendo.</li>
           <li><b className="text-slate-300">Artists.</b> Tracks by the same artist are not independent. Six of the twenty playable tracks involve one artist (Kara Square, with two different collaborators).</li>
           <li><b className="text-slate-300">Correlation.</b> The energy–axis figure is a Pearson r on all tracks.</li>
         </ul>
@@ -216,8 +216,9 @@ export default function App() {
       <footer className="mx-auto max-w-3xl px-6 pb-24 text-sm text-slate-500">
         <h2 className="mb-3 font-serif text-xl text-slate-300">Credits</h2>
         <p className="mb-4">
-          Audio clips of 20 seconds from Jamendo, used for non-commercial research and education,
-          with credit to the artists. Tags and audio from the MTG-Jamendo dataset.
+          Audio streamed from <a href="https://www.jamendo.com" className="underline hover:text-slate-300">Jamendo</a>,
+          used for non-commercial research and education, with credit to the artists.
+          Tags and audio features from the MTG-Jamendo dataset.
         </p>
         <ul className="space-y-1">
           {Object.values(credits).map((c) => (
